@@ -4,13 +4,14 @@ const https = require('https');
 const hostname = 'easyzoom.blob.core.windows.net'
 const path = '/tiled/db634261-8c76-4369-ac0e-912b5bc67922/db634261-8c76-4369-ac0e-912b5bc67922_files/7/'
 
-const y = 108
-const x = 90
-// const x = 10
-// const y = 10
+// const y = 108
+// const x = 90
+const x = 30
+const y = 30
 const total = x * y
 let ammountReceived = 0
 
+if (!fs.existsSync('./img')) fs.mkdirSync('./img')
 for (let i = 0; i < x; i++) {
   for (let j = 0; j < y; j++) {
     getImage(hostname, path, getFileName(i, j))
