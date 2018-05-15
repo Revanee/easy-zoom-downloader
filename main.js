@@ -1,10 +1,10 @@
 const jimp = require('jimp')
 
-const IMG_GRID_HEIGHT = 108
-const IMG_GRID_WIDTH = 90
+// const IMG_GRID_HEIGHT = 108
+// const IMG_GRID_WIDTH = 90
 
-// const IMG_GRID_HEIGHT = 10
-// const IMG_GRID_WIDTH = 10
+const IMG_GRID_HEIGHT = 30
+const IMG_GRID_WIDTH = 30
 const TOTAL_IMAGES = IMG_GRID_WIDTH * IMG_GRID_HEIGHT
 
 const gridPromise = getGrid(IMG_GRID_WIDTH, IMG_GRID_HEIGHT)
@@ -20,12 +20,18 @@ function getGrid(width, height) {
       colPromises.push(getColumn(x, height))
     }
     Promise.all(colPromises)
-      .then((cols) => resolve(cols), err => console.log)
+      .then(cols => {
+        console.log('resolving grid')
+        resolve(cols)
+      }, err => console.log)
   })
 }
 
 function getImage(x, y) {
-  return jimp.read(getFileName(x, y))
+  return jimp
+    .read(getFileName(x, y))
+    .catch(err =>
+      console.log('failed to get image ' + getFileName(x, y)))
 }
 
 function getColumn(x, gridHeight) {
@@ -35,12 +41,13 @@ function getColumn(x, gridHeight) {
       imagePromises.push(getImage(x, y))
     }
     Promise.all(imagePromises)
-      .then(images => resolve(images), err => console.log)
+      .then(images => {
+        console.log('resolving column ' + x)
+        resolve(images)
+      }, err => 0)
   })
 }
 
-
-//.................................................
 function stitch(images) {
   console.log('stitching')
   let stitched = 0
@@ -51,13 +58,17 @@ function stitch(images) {
 
   for (let y = 0; y < IMG_GRID_HEIGHT; y++) {
     for (let x = 0; x < IMG_GRID_WIDTH; x++) {
-      img.composite(images[x][y], x * pixelWidth, y * pixelHeight)
+      try {
+        img.composite(images[x][y], x * pixelWidth, y * pixelHeight)
+      } catch (e) {
+        console.log('failed to stitch image ' + getFileName(x, y))
+      }
       stitched++
       console.log('stitched: ' + stitched + '/' + TOTAL_IMAGES)
     }
   }
 
-  console.log('writing file')
+  console.log('writing file...')
   img.write('./final.jpg')
   console.log('done')
 }
